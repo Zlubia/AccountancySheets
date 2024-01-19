@@ -8,27 +8,59 @@ Created on Fri Jan 19 17:08:14 2024
 import ezsheets
 
 
-#ss = ezsheets.upload('CSV_2024-01-17-16.24.csv')
+"""
+---- Google Sheets to import ---
+"""
+Data_source = ezsheets.Spreadsheet('1KMtkCAud5RhGf9AO7unFJOfK4W3bDJJbZLx3NEJffmA')
 
-test_spreadsheet = ezsheets.Spreadsheet('18yFCTPgEwfl9_2pLhC9RMJxkDEX18QyYHozxjmkO_Zc')
+Finance_spreadsheet = ezsheets.Spreadsheet('18yFCTPgEwfl9_2pLhC9RMJxkDEX18QyYHozxjmkO_Zc')
 
-#Getting first sheet :
-Expense_sheet = test_spreadsheet['Expense']
 
 """
-loop = True
-i = 1
+------ STEP 01 - Read CSV -------
+We want to read it from bottom to top, to put the expenses chronologically.
+"""
 
-while loop == True :
+print("STEP 01")
+
+Data_source_sheet = Data_source[0]  # 0 means the first sheet of the document.
+
+
+
+Data_column_A = Data_source_sheet.getColumn(1)
+number_of_rows = 0
+
+for i in Data_column_A :
     
-    if Expense_sheet[1,i] == '' :
-        loop = False
-        Expense_sheet[1,i] = 'OCT'
-        
+    if i == '' :
+        break
     else :
-        i += 1
-"""
+        number_of_rows += 1
+    
 
+    
+print("number of row :")
+print(str(number_of_rows))
+
+
+while number_of_rows > 1 :
+    
+    transaction = Data_source_sheet.getRow(number_of_rows)
+    number_of_rows -= 1
+    
+    print(" ")
+    print(str(transaction))
+    
+
+
+
+
+Expense_sheet = Finance_spreadsheet['Expense']
+
+
+"""Cette version-ci permet de faire une loop sans devoir se connecter au google sheet à chaque vérification de la boucle.
+On memorise la colonne entière, et je parcours la colonne.
+"""
 column_A = Expense_sheet.getColumn(1)
 
 j = 0
@@ -39,3 +71,16 @@ for i in column_A:
     if i == '' :
         Expense_sheet[1,j] = 'OCT'
         break
+    
+    
+print ("/n testing done")
+    
+"""
+----------
+OK Je peux utiliser des inputs pour donner des indications !
+----------
+"""
+  
+b = input("trying an imput here")
+
+#Expense_sheet[11,11] = b
