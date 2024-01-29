@@ -18,6 +18,8 @@ Data_source = ezsheets.Spreadsheet('https://docs.google.com/spreadsheets/d/1KMtk
 
 Finance_spreadsheet = ezsheets.Spreadsheet('https://docs.google.com/spreadsheets/d/18yFCTPgEwfl9_2pLhC9RMJxkDEX18QyYHozxjmkO_Zc/edit#gid=436550579')
 
+
+
 """
 FUNCTIONS
 """
@@ -58,13 +60,63 @@ def getamount(amount) :
     return amount
 
 
+
+
 """
------- STEP 01 - Read CSV -------
+------ STEP 01 - Read Data References for the script -------
+Create some data structures containing the data references from the finance sheet's reference page (Data For Python Script).
+Those data structures will be used later to convert the Data from the CSV to the Data we'll write in the finance sheet.
+"""
+print("\n------ STEP 01 - Read Data References for the script -------")
+
+
+
+SHEET_Data_For_Python_Script = Finance_spreadsheet['Data For Python Script']
+Data_column_A = SHEET_Data_For_Python_Script.getColumn(1)
+
+
+
+"""Create a function for counting rows?"""
+number_of_rows = 0
+for i in Data_column_A :
+    if i == '' :
+        break
+    else :
+        number_of_rows += 1
+        
+
+        
+
+data_references = {}   
+while number_of_rows > 0 :
+    
+    current_row = SHEET_Data_For_Python_Script.getRow(number_of_rows)
+    key = current_row[0]
+    current_row.pop(0)
+    values = []
+    
+    for j in current_row :
+        if j != '':
+            values.append(j)
+        else :
+            break
+    
+    data_references[key] = values
+    
+    number_of_rows -= 1
+    
+print("----")
+print(data_references)
+
+
+
+"""
+------ STEP 02 - Read CSV -------
 The transactions are ordered from most recent to oldest ones.
 We want to read it from bottom to top, to put the expenses chronologically.
 """
 
-print("\nSTEP 01")
+print("\n------ STEP 02 - Read CSV -------")
 
 Data_source_sheet = Data_source[0]  # 0 means the first sheet of the document.
 
@@ -76,6 +128,8 @@ for i in Data_column_A :
         break
     else :
         number_of_rows += 1
+        
+
     
 print("number of row :")
 print(str(number_of_rows))
@@ -88,6 +142,9 @@ while number_of_rows > 1 :
     date_column = transaction_source[1]
     month = getmonth(date_column)    
     transaction_to_write.append(month)
+    
+    account_number = transaction_source[5]
+    account_to_write = data_references[account_number]
     
     
     amount_column = transaction_source[3]
@@ -106,6 +163,8 @@ while number_of_rows > 1 :
     print(str(transaction_source))
     print("\nTransaction To Write :")
     print(str(transaction_to_write))
+    print("\nAccount To Write :")
+    print(str(account_to_write))
     
 
 
