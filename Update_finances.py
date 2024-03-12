@@ -14,7 +14,7 @@ print("import google sheets")
 """
 ---- Google Sheets to import ---
 """
-Data_source = ezsheets.Spreadsheet('https://docs.google.com/spreadsheets/d/1KMtkCAud5RhGf9AO7unFJOfK4W3bDJJbZLx3NEJffmA/edit#gid=1309867271')
+Data_source = ezsheets.Spreadsheet('https://docs.google.com/spreadsheets/d/1vBjEdlJh2zD5CElqan3q9OGx512o1hu5-gVA-HXOYb8/edit#gid=444076880')
 
 Finance_spreadsheet = ezsheets.Spreadsheet('https://docs.google.com/spreadsheets/d/18yFCTPgEwfl9_2pLhC9RMJxkDEX18QyYHozxjmkO_Zc/edit#gid=436550579')
 
@@ -91,13 +91,13 @@ data_references = {}
 while number_of_rows > 0 :
     
     current_row = SHEET_Data_For_Python_Script.getRow(number_of_rows)
-    key = current_row[0]
+    key = []
+    values = current_row[0]
     current_row.pop(0)
-    values = []
     
     for j in current_row :
         if j != '':
-            values.append(j)
+            key.append(j)
         else :
             break
     
