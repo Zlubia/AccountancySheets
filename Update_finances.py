@@ -14,7 +14,7 @@ print("import google sheets")
 """
 ---- Google Sheets to import ---
 """
-Data_source = ezsheets.Spreadsheet('https://docs.google.com/spreadsheets/d/1vBjEdlJh2zD5CElqan3q9OGx512o1hu5-gVA-HXOYb8/edit#gid=444076880')
+DataSource = ezsheets.Spreadsheet('https://docs.google.com/spreadsheets/d/1vBjEdlJh2zD5CElqan3q9OGx512o1hu5-gVA-HXOYb8/edit#gid=444076880')
 
 Finance_spreadsheet = ezsheets.Spreadsheet('https://docs.google.com/spreadsheets/d/18yFCTPgEwfl9_2pLhC9RMJxkDEX18QyYHozxjmkO_Zc/edit#gid=436550579')
 
@@ -24,7 +24,7 @@ Finance_spreadsheet = ezsheets.Spreadsheet('https://docs.google.com/spreadsheets
 FUNCTIONS
 """
 
-def getmonth(date) :
+def get_month(Date) :
     """
     Parameters
     ----------
@@ -35,15 +35,15 @@ def getmonth(date) :
     -------
     The first 3 letters of the month. For example 'JAN'
     """
-    monthlist = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
+    MonthList = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
     
-    month_index = date[3]+date[4]
-    month_index = int(month_index)
+    MonthIndex = Date[3]+Date[4]
+    MonthIndex = int(MonthIndex)
     
-    month = monthlist[month_index-1]  #-1 because the index of a list starts at 0
-    return month
+    Month = MonthList[MonthIndex-1]  #-1 because the index of a list starts at 0
+    return Month
 
-def getamount(amount) :
+def get_amount(Amount) :
     """
     Converts the written(string) amount to a float
     Parameters
@@ -55,11 +55,26 @@ def getamount(amount) :
     -------
     The amount converted to float
     """
-    amount = amount.replace(",",".")
-    amount = float(amount)
-    return amount
+    Amount = Amount.replace(",",".")
+    Amount = float(Amount)
+    return Amount
 
+def get_category_pro_and_detail(TransactionSource, DataReferences):
+    """
+    TransactionSource : The row of data from the CSV as a list
+    DataReferences : dictionary containing the data references
+    Returns
+    -------
+    A string of the category of the transaction
+    """
+    if TransactionSource[6] == 'Domiciliation':
+        Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8])
+    else:
+        Key = 'undefined_yet'
 
+    Values = DataReferences.get(Key, 'DoesNotExist')
+
+    return Values
 
 
 """
@@ -72,41 +87,46 @@ print("\n------ STEP 01 - Read Data References for the script -------")
 
 
 SHEET_Data_For_Python_Script = Finance_spreadsheet['Data For Python Script']
-Data_column_A = SHEET_Data_For_Python_Script.getColumn(1)
+Data_Column_A = SHEET_Data_For_Python_Script.getColumn(1)
 
 
 
 """Create a function for counting rows?"""
-number_of_rows = 0
-for i in Data_column_A :
+NumberOfRows = 0
+for i in Data_Column_A :
     if i == '' :
         break
     else :
-        number_of_rows += 1
+        NumberOfRows += 1
         
 
         
 
-data_references = {}   
-while number_of_rows > 0 :
+DataReferences = {}
+while NumberOfRows > 0 :
     
-    current_row = SHEET_Data_For_Python_Script.getRow(number_of_rows)
-    key = []
-    values = current_row[0]
-    current_row.pop(0)
+    CurrentRow = SHEET_Data_For_Python_Script.getRow(NumberOfRows)
+    CreateKey = []
+    Values = [CurrentRow[0],CurrentRow[1],CurrentRow[2]]
+    CurrentRow.pop(2)
+    CurrentRow.pop(1)
+    CurrentRow.pop(0)
     
-    for j in current_row :
+    for j in CurrentRow :
         if j != '':
-            key.append(j)
+            CreateKey.append(j)
         else :
             break
+
+    Key = tuple(CreateKey)
+
+    DataReferences[Key] = Values
     
-    data_references[key] = values
-    
-    number_of_rows -= 1
+    NumberOfRows -= 1
     
 print("----")
-print(data_references)
+for i,j in DataReferences.items():
+    print(i, j)
 
 
 
@@ -118,53 +138,63 @@ We want to read it from bottom to top, to put the expenses chronologically.
 
 print("\n------ STEP 02 - Read CSV -------")
 
-Data_source_sheet = Data_source[0]  # 0 means the first sheet of the document.
+DataSourceSheet = DataSource[0]  # 0 means the first sheet of the document.
 
-Data_column_A = Data_source_sheet.getColumn(1)
-number_of_rows = 0
+Data_Column_A = DataSourceSheet.getColumn(1)
+NumberOfRows = 0
 
-for i in Data_column_A :
+for i in Data_Column_A :
     if i == '' :
         break
     else :
-        number_of_rows += 1
+        NumberOfRows += 1
         
 
     
 print("number of row :")
-print(str(number_of_rows))
+print(str(NumberOfRows))
 
-while number_of_rows > 1 :
+while NumberOfRows > 1 :
     
-    transaction_source = Data_source_sheet.getRow(number_of_rows)
-    transaction_to_write = []
+    TransactionSource = DataSourceSheet.getRow(NumberOfRows)
+    TransactionToWrite = []
     
-    date_column = transaction_source[1]
-    month = getmonth(date_column)    
-    transaction_to_write.append(month)
+    DateColumn = TransactionSource[1]
+    Month = get_month(DateColumn)
+    TransactionToWrite.append(Month)
+
+    AmountColumn = TransactionSource[3]
+    Amount = get_amount(AmountColumn)
     
-    account_number = transaction_source[5]
-    account_to_write = data_references[account_number]
-    
-    
-    amount_column = transaction_source[3]
-    amount = getamount(amount_column)
-    
-    if amount < 0 :
+    if Amount < 0 :
         EXPENSE = True
         INCOME = False
     else :
         INCOME = True
         EXPENSE = False
+
+    Category_Pro_Detail = get_category_pro_and_detail(TransactionSource,DataReferences)
+    if Category_Pro_Detail != 'DoesNotExist':
+        TransactionToWrite.extend(Category_Pro_Detail)
+    #else :
+        #Faudra ajouter ici l'option de demander un input et d'écrire un nouveau truc dans les data etc.
+
+    if EXPENSE == True :
+        AbsoluteAmount = abs(Amount)
+        TransactionToWrite.append(AbsoluteAmount)
+
+    AccountNumber = (TransactionSource[5],)
+    AccountToWrite = DataReferences[AccountNumber][0]
+    TransactionToWrite.append(AccountToWrite)
     
-    number_of_rows -= 1
+    NumberOfRows -= 1
     
     print("\nTransaction Data Source : ")
-    print(str(transaction_source))
+    print(str(TransactionSource))
     print("\nTransaction To Write :")
-    print(str(transaction_to_write))
+    print(str(TransactionToWrite))
     print("\nAccount To Write :")
-    print(str(account_to_write))
+    print(str(AccountToWrite))
     
 
 
