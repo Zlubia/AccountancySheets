@@ -16,9 +16,12 @@ print("import google sheets")
 """
 DataSource = ezsheets.Spreadsheet('https://docs.google.com/spreadsheets/d/1vBjEdlJh2zD5CElqan3q9OGx512o1hu5-gVA-HXOYb8/edit#gid=444076880')
 
-Finance_spreadsheet = ezsheets.Spreadsheet('https://docs.google.com/spreadsheets/d/18yFCTPgEwfl9_2pLhC9RMJxkDEX18QyYHozxjmkO_Zc/edit#gid=436550579')
+FinanceSpreadsheet = ezsheets.Spreadsheet('https://docs.google.com/spreadsheets/d/18yFCTPgEwfl9_2pLhC9RMJxkDEX18QyYHozxjmkO_Zc/edit#gid=436550579')
 
-
+"""
+------ VARIABLES ----
+"""
+ExpensesToWrite = []
 
 """
 FUNCTIONS
@@ -59,6 +62,21 @@ def get_amount(Amount) :
     Amount = float(Amount)
     return Amount
 
+def extract_communication(CommunicationData) :
+    """
+    Parameters
+    ----------
+    CommunicationData : string containing the communication details from the CSV
+
+    Returns
+    -------
+    The extracted communication information without the dates and codes and other useless information.
+    """
+    CutFront = CommunicationData[59:]
+    CutEnd = CutFront[:-83]
+
+    return CutEnd
+
 def get_category_pro_and_detail(TransactionSource, DataReferences):
     """
     TransactionSource : The row of data from the CSV as a list
@@ -67,11 +85,20 @@ def get_category_pro_and_detail(TransactionSource, DataReferences):
     -------
     A string of the category of the transaction
     """
+
     if TransactionSource[6] == 'Domiciliation':
         Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8])
-    else:
-        Key = 'undefined_yet'
+    elif TransactionSource[6] == 'Paiement par carte':
+        Key = (TransactionSource[6], extract_communication(TransactionSource[10]))
+    elif TransactionSource[6] == 'Remboursements Crédits Hypothécaires':
+        Key = (TransactionSource[6],)
+    elif TransactionSource[6] == 'Ordre permanent':
+        Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8],TransactionSource[9])
+    elif TransactionSource[6] == 'Virement en euros':
+        Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8],TransactionSource[9])
 
+    print("here is the key, beware has to be a tuple !")
+    print(Key)
     Values = DataReferences.get(Key, 'DoesNotExist')
 
     return Values
@@ -86,7 +113,7 @@ print("\n------ STEP 01 - Read Data References for the script -------")
 
 
 
-SHEET_Data_For_Python_Script = Finance_spreadsheet['Data For Python Script']
+SHEET_Data_For_Python_Script = FinanceSpreadsheet['Data For Python Script']
 Data_Column_A = SHEET_Data_For_Python_Script.getColumn(1)
 
 
@@ -186,6 +213,9 @@ while NumberOfRows > 1 :
     AccountNumber = (TransactionSource[5],)
     AccountToWrite = DataReferences[AccountNumber][0]
     TransactionToWrite.append(AccountToWrite)
+
+    if EXPENSE == True:
+        ExpensesToWrite.append(TransactionToWrite)
     
     NumberOfRows -= 1
     
@@ -196,17 +226,17 @@ while NumberOfRows > 1 :
     print("\nAccount To Write :")
     print(str(AccountToWrite))
     
+print("List of expenses to write")
+print(ExpensesToWrite)
 
 
-
-
-Expense_sheet = Finance_spreadsheet['Expense']
+ExpenseSheet = FinanceSpreadsheet['Expense']
 
 
 """Cette version-ci permet de faire une loop sans devoir se connecter au google sheet à chaque vérification de la boucle.
 On memorise la colonne entière, et je parcours la colonne.
 """
-column_A = Expense_sheet.getColumn(1)
+column_A = ExpenseSheet.getColumn(1)
 
 j = 0
 
@@ -214,11 +244,12 @@ for i in column_A:
     j += 1
     
     if i == '' :
-        Expense_sheet[1,j] = 'OCT'
+        ExpenseSheet[1,j] = 'OCT'
         break
+
+
     
-    
-print ("/n testing done")
+print ("\n testing done")
     
 """
 ----------
