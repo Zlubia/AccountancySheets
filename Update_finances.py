@@ -16,10 +16,10 @@ print("import google sheets")
 ---- Google Sheets to import ---
 """
 DataSource = ezsheets.Spreadsheet(
-    'https://docs.google.com/spreadsheets/')
+    'https://docs.google.com/spreadsheets/d/1vBjEdlJh2zD5CElqan3q9OGx512o1hu5-gVA-HXOYb8/edit#gid=444076880')
 
 FinanceSpreadsheet = ezsheets.Spreadsheet(
-    'https://docs.google.com/spreadsheets/')
+    'https://docs.google.com/spreadsheets/d/18yFCTPgEwfl9_2pLhC9RMJxkDEX18QyYHozxjmkO_Zc/edit#gid=436550579')
 
 """
 ------ VARIABLES ----
@@ -137,7 +137,15 @@ def extract_communication(CommunicationData):
     The extracted communication information without the dates and codes and other useless information.
     """
     CutFront = CommunicationData[59:]
-    CutEnd = CutFront[:-83]
+    if CutFront.find("BANCONTACT REFERENCE BANQUE") > 0:
+        CutEnd = CutFront[:-83]
+    elif CutFront.find("VISA DEBIT REFERENCE BANQUE") > 0:
+        CutEnd = CutFront[:-83]
+    elif CutFront.find("SANS CONTACT REFERENCE BANQUE") > 0:
+        CutEnd = CutFront[:-98]
+    else :
+        CutEnd = CutFront
+        print("Error with the details - probably a new type of communication info. Please Check")
 
     return CutEnd
 
@@ -158,11 +166,11 @@ def get_category_pro_and_detail(TransactionSource):
     elif TransactionSource[6] == 'Remboursements Crédits Hypothécaires':
         Key = (TransactionSource[6],)
     elif TransactionSource[6] == 'Ordre permanent':
-        Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8], TransactionSource[9])
+        Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8], TransactionSource[9].replace("+",""))
     elif TransactionSource[6] == 'Virement en euros':
-        Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8], TransactionSource[9])
+        Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8], TransactionSource[9].replace("+",""))
 
-    print("here is the key, beware has to be a tuple !")
+    print("\nhere is the key, beware has to be a tuple !")
     print(Key)
 
     return Key
@@ -240,9 +248,7 @@ while NumberOfRows > 1:
     Key = get_category_pro_and_detail(TransactionSource)
     Category_Pro_Detail = DataReferences.get(Key, 'DoesNotExist')
 
-    if Category_Pro_Detail != 'DoesNotExist':
-        TransactionToWrite.extend(Category_Pro_Detail)
-    else:
+    if Category_Pro_Detail == 'DoesNotExist':
         print("\nReference Data Not Found, here is the transaction information :")
 
         print("\nDate :", TransactionSource[1], ", Amount:", Amount, ", Account: ", AccountToWrite, ", Type:",
@@ -256,7 +262,6 @@ while NumberOfRows > 1:
             SkipTransaction = input("\nWould you like to skip this transaction ? Y/N :")
             SkipTransaction.lower()
             InputValidity = verify_input(SkipTransaction, YESNO)
-
         if SkipTransaction in YES:
             NumberOfRows -= 1
             continue
@@ -279,22 +284,25 @@ while NumberOfRows > 1:
 
         Comment = input("\nIs there a comment you'd want to add ? :")
 
-        ReferenceToWrite = [Category, ProExpense, Comment]
+        Category_Pro_Detail = [Category, ProExpense, Comment]
 
-        """ajouter l'option de juste l'ajouter dans les data mais pas dans les refs."""
+        """---Ajout dans les refs---"""
         InputValidity = False
         while InputValidity == False:
             AddToDataReferences = input("\nWould you like to add this information to the reference data ? Y/N :")
             AddToDataReferences.lower()
             InputValidity = verify_input(AddToDataReferences, YESNO)
-
         if AddToDataReferences in YES:
             #Ajout au dictionnaire des references
+            ReferenceToWrite = [Category, ProExpense, Comment]
             DataReferences[Key] = ReferenceToWrite
             #Ecrire dans le google sheet
             ReferenceToWrite.extend(Key)
             LastRow = count_filled_rows(SHEET_Data_For_Python_Script)
             SHEET_Data_For_Python_Script.updateRow(LastRow + 1, ReferenceToWrite)
+
+
+    TransactionToWrite.extend(Category_Pro_Detail)
 
     if EXPENSE == True:
         AbsoluteAmount = abs(Amount)
@@ -316,8 +324,11 @@ while NumberOfRows > 1:
     print("\nAccount To Write :")
     print(str(AccountToWrite))
 
-print("List of expenses to write")
-print(ExpensesToWrite)
+print("List of expenses to write :")
+j = 1
+for i in ExpensesToWrite :
+    print(j, ":", i)
+    j += 1
 
 ExpenseSheet = FinanceSpreadsheet['Expense']
 
