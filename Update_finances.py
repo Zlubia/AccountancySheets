@@ -40,7 +40,7 @@ CATEGORIES = ["Acerta", "Car", "Chat", "Clothing", "Comptable", "Concerts", "Cou
               "Renovations", "Restaurants", "Sandwiches", "Sport", "Telecom", "Travel",
               "TVA", "Utilities", "Water", "Prêts vacances", "Sorties", "Essence et Parking", "Freelancing",
               "Investments", "Gifts", "Remboursement assurance/impots",
-              "Remboursement prêts amis", "Remboursement vacances", "Other"]
+              "Remboursement prêts amis", "Remboursement vacances", "Other", "SKIP"]
 
 """
 FUNCTIONS
@@ -311,9 +311,18 @@ while NumberOfRows > 1:
     AccountNumber = (TransactionSource[5],)
     AccountToWrite = DataReferences[AccountNumber][0]
     TransactionToWrite.append(AccountToWrite)
+    if AccountToWrite == "Commun":
+        for i in range(3) :
+            TransactionToWrite.append('')
+        TransactionToWrite.append(AbsoluteAmount)
+        TransactionToWrite[4] = AbsoluteAmount/2
 
-    if EXPENSE == True:
+
+    if EXPENSE == True and TransactionToWrite[1] != 'SKIP':
         ExpensesToWrite.append(TransactionToWrite)
+
+
+
 
     NumberOfRows -= 1
 
