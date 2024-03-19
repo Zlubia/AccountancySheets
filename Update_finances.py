@@ -16,15 +16,16 @@ print("import google sheets")
 ---- Google Sheets to import ---
 """
 DataSource = ezsheets.Spreadsheet(
-    'https://docs.google.com/spreadsheets/d/')
+    'https://docs.google.com/spreadsheets/d/1LZMcUDF2hYvWIYjJo1IGjmrvZfXa4THeU4lYHwkF6TI/edit#gid=1161206850')
 
 FinanceSpreadsheet = ezsheets.Spreadsheet(
-    'https://docs.google.com/spreadsheets/d/')
+    'https://docs.google.com/spreadsheets/d/18yFCTPgEwfl9_2pLhC9RMJxkDEX18QyYHozxjmkO_Zc/edit#gid=436550579')
 
 """
 ------ VARIABLES ----
 """
 ExpensesToWrite = []
+IncomeToWrite = []
 
 """CONSTANTS"""
 YES = ["yes", "y", "oui", "o", "ok"]
@@ -235,6 +236,9 @@ while NumberOfRows > 1:
     Month = get_month(DateColumn)
     TransactionToWrite.append(Month)
 
+    AccountNumber = (TransactionSource[5],)
+    AccountToWrite = DataReferences[AccountNumber][0]
+
     AmountColumn = TransactionSource[3]
     Amount = get_amount(AmountColumn)
 
@@ -250,6 +254,9 @@ while NumberOfRows > 1:
 
     if Category_Pro_Detail == 'DoesNotExist':
         print("\nReference Data Not Found, here is the transaction information :")
+
+        if INCOME == True :
+            print("\nATTENTION - This is an income ! ")
 
         print("\nDate :", TransactionSource[1], ", Amount:", Amount, ", Account: ", AccountToWrite, ", Type:",
               TransactionSource[6])
@@ -271,16 +278,19 @@ while NumberOfRows > 1:
             Category = input("\nWich category is attributed to this transaction ? :")
             InputValidity = verify_input(Category, CATEGORIES)
 
-        InputValidity = False
-        while InputValidity == False:
-            ProExpense = input("\nIs this a professional expense ? Y/N :")
-            ProExpense.lower()
-            InputValidity = verify_input(ProExpense, YESNO)
+        if EXPENSE == True :
+            InputValidity = False
+            while InputValidity == False:
+                ProExpense = input("\nIs this a professional expense ? Y/N :")
+                ProExpense.lower()
+                InputValidity = verify_input(ProExpense, YESNO)
 
-        if ProExpense in YES:
-            ProExpense = "TRUE"
-        else:
-            ProExpense = "FALSE"
+            if ProExpense in YES:
+                ProExpense = "TRUE"
+            else:
+                ProExpense = "FALSE"
+        else :
+            ProExpense = ''
 
         Comment = input("\nIs there a comment you'd want to add ? :")
 
@@ -301,28 +311,28 @@ while NumberOfRows > 1:
             LastRow = count_filled_rows(SHEET_Data_For_Python_Script)
             SHEET_Data_For_Python_Script.updateRow(LastRow + 1, ReferenceToWrite)
 
-
     TransactionToWrite.extend(Category_Pro_Detail)
 
     if EXPENSE == True:
         AbsoluteAmount = abs(Amount)
         TransactionToWrite.append(AbsoluteAmount)
 
-    AccountNumber = (TransactionSource[5],)
-    AccountToWrite = DataReferences[AccountNumber][0]
-    TransactionToWrite.append(AccountToWrite)
-    if AccountToWrite == "Commun":
-        for i in range(3) :
-            TransactionToWrite.append('')
-        TransactionToWrite.append(AbsoluteAmount)
-        TransactionToWrite[4] = AbsoluteAmount/2
+        TransactionToWrite.append(AccountToWrite)
+        if AccountToWrite == "Commun":
+            for i in range(3) :
+                TransactionToWrite.append('')
+            TransactionToWrite.append(AbsoluteAmount)
+            TransactionToWrite[4] = AbsoluteAmount/2
+
+    elif INCOME == True :
+        TransactionToWrite.pop(2)
+        TransactionToWrite.append(Amount)
 
 
     if EXPENSE == True and TransactionToWrite[1] != 'SKIP':
         ExpensesToWrite.append(TransactionToWrite)
-
-
-
+    elif INCOME == True and TransactionToWrite[1] != 'SKIP':
+        IncomeToWrite.append(TransactionToWrite)
 
     NumberOfRows -= 1
 
@@ -333,36 +343,40 @@ while NumberOfRows > 1:
     print("\nAccount To Write :")
     print(str(AccountToWrite))
 
+
+
+"""
+------------------ STEP 03 - Write ----------------------------
+We write the list of transactions on finance spreadsheet.
+"""
+
+"""Writing Expenses"""
+ExpenseSheet = FinanceSpreadsheet['Expense']
+
+
+FilledRows = count_filled_rows(ExpenseSheet)
+NextEmptyRow = FilledRows+1
+
 print("List of expenses to write :")
 j = 1
 for i in ExpensesToWrite :
     print(j, ":", i)
+    ExpenseSheet.updateRow(NextEmptyRow,i)
+    NextEmptyRow += 1
     j += 1
 
-ExpenseSheet = FinanceSpreadsheet['Expense']
+"""Writing Income"""
+IncomeSheet = FinanceSpreadsheet['Income']
 
-"""Cette version-ci permet de faire une loop sans devoir se connecter au google sheet à chaque vérification de la boucle.
-On memorise la colonne entière, et je parcours la colonne.
-"""
-column_A = ExpenseSheet.getColumn(1)
+FilledRows = count_filled_rows(IncomeSheet)
+NextEmptyRow = FilledRows+1
 
-j = 0
-
-for i in column_A:
+print("List of incomes to write :")
+j = 1
+for i in IncomeToWrite :
+    print(j, ":", i)
+    IncomeSheet.updateRow(NextEmptyRow,i)
+    NextEmptyRow += 1
     j += 1
-
-    if i == '':
-        ExpenseSheet[1, j] = 'OCT'
-        break
 
 print("\n testing done")
-
-"""
-----------
-OK Je peux utiliser des inputs pour donner des indications !
-----------
-"""
-
-b = input("trying an imput here")
-
-# Expense_sheet[11,11] = b
