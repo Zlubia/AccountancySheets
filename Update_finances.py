@@ -16,10 +16,10 @@ print("import google sheets")
 ---- Google Sheets to import ---
 """
 DataSource = ezsheets.Spreadsheet(
-    'https://docs.google.com/spreadsheets/d/1vBjEdlJh2zD5CElqan3q9OGx512o1hu5-gVA-HXOYb8/edit#gid=444076880')
+    'https://docs.google.com/spreadsheets/d/')
 
 FinanceSpreadsheet = ezsheets.Spreadsheet(
-    'https://docs.google.com/spreadsheets/d/18yFCTPgEwfl9_2pLhC9RMJxkDEX18QyYHozxjmkO_Zc/edit#gid=436550579')
+    'https://docs.google.com/spreadsheets/d/')
 
 """
 ------ VARIABLES ----
