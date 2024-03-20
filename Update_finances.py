@@ -16,10 +16,10 @@ print("import google sheets")
 ---- Google Sheets to import ---
 """
 DataSource = ezsheets.Spreadsheet(
-    'https://docs.google.com/spreadsheets/d/1LZMcUDF2hYvWIYjJo1IGjmrvZfXa4THeU4lYHwkF6TI/edit#gid=1161206850')
+    'https://docs.google.com/spreadsheets/d/')
 
 FinanceSpreadsheet = ezsheets.Spreadsheet(
-    'https://docs.google.com/spreadsheets/d/18yFCTPgEwfl9_2pLhC9RMJxkDEX18QyYHozxjmkO_Zc/edit#gid=436550579')
+    'https://docs.google.com/spreadsheets/d/')
 
 """
 ------ VARIABLES ----
@@ -164,12 +164,16 @@ def get_category_pro_and_detail(TransactionSource):
         Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8])
     elif TransactionSource[6] == 'Paiement par carte':
         Key = (TransactionSource[6], extract_communication(TransactionSource[10]))
+    elif TransactionSource[6] == 'Remboursement crédit':
+        Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8])
     elif TransactionSource[6] == 'Remboursements Crédits Hypothécaires':
         Key = (TransactionSource[6],)
     elif TransactionSource[6] == 'Ordre permanent':
         Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8], TransactionSource[9].replace("+",""))
-    elif TransactionSource[6] == 'Virement en euros':
+    elif TransactionSource[6] == 'Virement en euros' and get_amount(TransactionSource[3]) < 0: #TransactionSource[3] = montant - ceci est une dépense
         Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8], TransactionSource[9].replace("+",""))
+    elif TransactionSource[6] == 'Virement en euros' and get_amount(TransactionSource[3]) > 0: #TransactionSource[3] = montant - ceci est un revenu
+        Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8])
 
     print("\nhere is the key, beware has to be a tuple !")
     print(Key)
@@ -231,6 +235,12 @@ while NumberOfRows > 1:
 
     TransactionSource = DataSourceSheet.getRow(NumberOfRows)
     TransactionToWrite = []
+
+    #Skip les virements vers le compte d'épargne
+    Contrepartie = (TransactionSource[7],)
+    if DataReferences.get(Contrepartie, 'Empty')[0] == 'Epargne' :
+        NumberOfRows -= 1
+        continue
 
     DateColumn = TransactionSource[1]
     Month = get_month(DateColumn)
