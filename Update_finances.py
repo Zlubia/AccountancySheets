@@ -174,6 +174,10 @@ def get_category_pro_and_detail(TransactionSource):
         Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8], TransactionSource[9].replace("+",""))
     elif TransactionSource[6] == 'Virement en euros' and get_amount(TransactionSource[3]) > 0: #TransactionSource[3] = montant - ceci est un revenu
         Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8])
+    elif TransactionSource[6] == 'Paiement par carte de crédit':
+        Key = (TransactionSource[6],)
+    elif TransactionSource[6] == 'Frais liés au compte':
+        Key = (TransactionSource[6],)
 
     print("\nhere is the key, beware has to be a tuple !")
     print(Key)
@@ -260,6 +264,10 @@ while NumberOfRows > 1:
         EXPENSE = False
 
     Key = get_category_pro_and_detail(TransactionSource)
+
+    """if Key = "Paiement par carte de crédit" :
+        #Add To Log"""
+
     Category_Pro_Detail = DataReferences.get(Key, 'DoesNotExist')
 
     if Category_Pro_Detail == 'DoesNotExist':
