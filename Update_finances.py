@@ -172,7 +172,11 @@ def get_category_pro_and_detail(TransactionSource):
         Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8], TransactionSource[9].replace("+",""))
     elif TransactionSource[6] == 'Virement en euros' and get_amount(TransactionSource[3]) < 0: #TransactionSource[3] = montant - ceci est une dépense
         Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8], TransactionSource[9].replace("+",""))
+    elif TransactionSource[6] == 'Virement instantané en euros' and get_amount(TransactionSource[3]) < 0:  # TransactionSource[3] = montant - ceci est une dépense
+        Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8], TransactionSource[9].replace("+", ""))
     elif TransactionSource[6] == 'Virement en euros' and get_amount(TransactionSource[3]) > 0: #TransactionSource[3] = montant - ceci est un revenu
+        Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8])
+    elif TransactionSource[6] == 'irement instantané en euros' and get_amount(TransactionSource[3]) > 0: #TransactionSource[3] = montant - ceci est un revenu
         Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8])
     elif TransactionSource[6] == 'Paiement par carte de crédit':
         Key = (TransactionSource[6],)
