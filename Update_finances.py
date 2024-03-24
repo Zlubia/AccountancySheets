@@ -33,15 +33,13 @@ NO = ["no", "n", "non"]
 YESNO = copy.copy(YES)
 YESNO.extend(NO)
 
-CATEGORIES = ["Acerta", "Car", "Chat", "Clothing", "Comptable", "Concerts", "Courses", "Doctor / Dentist", "Education",
-              "Emprunt", "Energy", "Frais Banque", "Frais professionnels",
-              "Gifts", "Health - Insurance", "Hobbies", "Housing - Taxes and insurances", "Impots", "Investments",
-              "Livraisons", "Other", "Other health", "Other Transport", "Pension",
-              "Pharmacy", "Prêts", "Pro - Investissements", "Pro - Restaurants - Events", "Public Transport",
-              "Renovations", "Restaurants", "Sandwiches", "Sport", "Telecom", "Travel",
-              "TVA", "Utilities", "Water", "Prêts vacances", "Sorties", "Essence et Parking", "Freelancing",
-              "Investments", "Gifts", "Remboursement assurance/impots",
-              "Remboursement prêts amis", "Remboursement vacances", "Other", "SKIP"]
+#building the list of possible categories
+CATEGORIES = ['SKIP']
+SHEET_Category_Data = FinanceSpreadsheet['Lists et data pour les formules']
+for i in range(4, 45): #Expense Categories, numbers are the rows from the sheet
+    CATEGORIES.append(SHEET_Category_Data[2, i])
+for i in range(4, 11): #Income Categories, numbers are the rows from the sheet
+    CATEGORIES.append(SHEET_Category_Data[1,i])
 
 """
 FUNCTIONS
@@ -401,4 +399,4 @@ for i in IncomeToWrite :
     NextEmptyRow += 1
     j += 1
 
-print("\n testing done")
+print("\n Job done !")
