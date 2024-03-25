@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jan 19 17:08:14 2024
-
 @author: Pierrick
 """
+from Update_finances_Log import *
 import copy
 
 print("import ezsheets")
@@ -174,7 +173,7 @@ def get_category_pro_and_detail(TransactionSource):
         Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8], TransactionSource[9].replace("+", ""))
     elif TransactionSource[6] == 'Virement en euros' and get_amount(TransactionSource[3]) > 0: #TransactionSource[3] = montant - ceci est un revenu
         Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8])
-    elif TransactionSource[6] == 'irement instantané en euros' and get_amount(TransactionSource[3]) > 0: #TransactionSource[3] = montant - ceci est un revenu
+    elif TransactionSource[6] == 'Virement instantané en euros' and get_amount(TransactionSource[3]) > 0: #TransactionSource[3] = montant - ceci est un revenu
         Key = (TransactionSource[6], TransactionSource[7], TransactionSource[8])
     elif TransactionSource[6] == 'Paiement par carte de crédit':
         Key = (TransactionSource[6],)
@@ -234,6 +233,8 @@ print("\n------ STEP 02 - Read CSV -------")
 DataSourceSheet = DataSource[0]  # 0 means the first sheet of the document.
 NumberOfRows = count_filled_rows(DataSourceSheet)
 
+Logs = Log(NumberOfRows-1)
+
 print("number of row :")
 print(str(NumberOfRows))
 
@@ -246,6 +247,7 @@ while NumberOfRows > 1:
     Contrepartie = (TransactionSource[7],)
     if DataReferences.get(Contrepartie, 'Empty')[0] == 'Epargne' :
         NumberOfRows -= 1
+        Logs.skip.append([TransactionSource[1], "Epargne Automatique"])
         continue
 
     DateColumn = TransactionSource[1]
@@ -267,8 +269,8 @@ while NumberOfRows > 1:
 
     Key = get_category_pro_and_detail(TransactionSource)
 
-    """if Key = "Paiement par carte de crédit" :
-        #Add To Log"""
+    if Key == "Paiement par carte de crédit" :
+        Logs.visa = True
 
     Category_Pro_Detail = DataReferences.get(Key, 'DoesNotExist')
 
@@ -290,6 +292,8 @@ while NumberOfRows > 1:
             SkipTransaction.lower()
             InputValidity = verify_input(SkipTransaction, YESNO)
         if SkipTransaction in YES:
+            TransactionToWrite.extend([TransactionSource[1], Amount, AccountToWrite, TransactionSource[8], TransactionSource[9], extract_communication(TransactionSource[10])])
+            Logs.skip.append(TransactionToWrite)
             NumberOfRows -= 1
             continue
 
@@ -351,8 +355,12 @@ while NumberOfRows > 1:
 
     if EXPENSE == True and TransactionToWrite[1] != 'SKIP':
         ExpensesToWrite.append(TransactionToWrite)
+        Logs.expenses.append(TransactionToWrite)
     elif INCOME == True and TransactionToWrite[1] != 'SKIP':
         IncomeToWrite.append(TransactionToWrite)
+        Logs.incomes.append(TransactionToWrite)
+    else :
+        Logs.skip.append(TransactionToWrite)
 
     NumberOfRows -= 1
 
@@ -380,7 +388,7 @@ NextEmptyRow = FilledRows+1
 print("List of expenses to write :")
 j = 1
 for i in ExpensesToWrite :
-    print(j, ":", i)
+    #print(j, ":", i)
     ExpenseSheet.updateRow(NextEmptyRow,i)
     NextEmptyRow += 1
     j += 1
@@ -394,9 +402,11 @@ NextEmptyRow = FilledRows+1
 print("List of incomes to write :")
 j = 1
 for i in IncomeToWrite :
-    print(j, ":", i)
+    #print(j, ":", i)
     IncomeSheet.updateRow(NextEmptyRow,i)
     NextEmptyRow += 1
     j += 1
 
 print("\n Job done !")
+
+Logs.printlog()
