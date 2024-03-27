@@ -15,10 +15,10 @@ print("import google sheets")
 ---- Google Sheets to import ---
 """
 DataSource = ezsheets.Spreadsheet(
-    'https://docs.google.com/spreadsheets/d/')
+    'https://docs.google.com/spreadsheets/d')
 
 FinanceSpreadsheet = ezsheets.Spreadsheet(
-    'https://docs.google.com/spreadsheets/d/')
+    'https://docs.google.com/spreadsheets/d')
 
 """
 ------ VARIABLES ----
@@ -269,7 +269,7 @@ while NumberOfRows > 1:
 
     Key = get_category_pro_and_detail(TransactionSource)
 
-    if Key == "Paiement par carte de crédit" :
+    if Key == ('Paiement par carte de crédit',) :
         Logs.visa = True
 
     Category_Pro_Detail = DataReferences.get(Key, 'DoesNotExist')
